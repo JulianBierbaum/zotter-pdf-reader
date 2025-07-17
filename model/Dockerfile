@@ -1,5 +1,5 @@
 # Stage 1: Build stage to download the model
-FROM ollama/ollama:latest as model_downloader
+FROM ollama/ollama:latest AS model_downloader
 
 # Set OLLAMA_HOST for the build context
 ENV OLLAMA_HOST=0.0.0.0
