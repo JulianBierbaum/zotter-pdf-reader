@@ -15,6 +15,9 @@ export async function callModel(prompt: string): Promise<string> {
         },
       ],
       stream: false,
+      options: {
+        num_ctx: 131072
+      },
     });
 
     return response.message.content;
