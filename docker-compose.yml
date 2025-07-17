@@ -2,8 +2,6 @@ services:
   ollama:
     image: julianbierbaum/repo:ollama-gemma
     container_name: ollama
-    ports:
-      - "11434:11434"
     volumes:
       - ollama_data:/root/.ollama
     networks:
@@ -23,6 +21,7 @@ services:
     environment:
       - OLLAMA_URL=http://ollama:11434
       - APP_PASSWORD=password
+    restart: unless-stopped
 
 volumes:
   ollama_data:
