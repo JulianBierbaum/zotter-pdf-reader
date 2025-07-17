@@ -9,7 +9,7 @@ services:
     networks:
       - zotter-network
     environment:
-      - OLLAMA_HOST=0.0.0.0
+      - OLLAMA_HOST=0.0.0.0:11434
     restart: unless-stopped
 
   next-app:
@@ -18,12 +18,11 @@ services:
       - "3000:3000"
     networks:
       - zotter-network
-    env_file:
-      - .env
     depends_on:
       - ollama
     environment:
-      - OLLAMA_HOST=http://ollama:11434
+      - OLLAMA_URL=http://ollama:11434
+      - APP_PASSWORD=password
 
 volumes:
   ollama_data:
