@@ -1,0 +1,16 @@
+version: '3.8'
+services:
+  next-app:
+    build:
+      context: ./website
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    networks:
+      - zotter-network
+    env_file:
+      - .env
+
+networks:
+  zotter-network:
+    driver: bridge
