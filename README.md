@@ -59,4 +59,6 @@ Open [http://localhost:9002](http://localhost:9002) with your browser to see the
 
 
 ### Deploy Webhook
-https://cnz000675.virtual.local:9443/api/stacks/webhooks/ddf1974e-d906-43fb-845e-1143b445f0ad
+https://cnz000675.virtual.local:9443/api/stacks/webhooks/7a224806-2cb8-430e-a3ef-ac292e7347bb
+
+https://docs.portainer.io/user/docker/stacks/webhooks
