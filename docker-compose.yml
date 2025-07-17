@@ -1,6 +1,6 @@
 services:
   ollama:
-    image: ollama/ollama:latest
+    image: julianbierbaum/repo:ollama-gemma
     container_name: ollama
     ports:
       - "11434:11434"
@@ -11,11 +11,9 @@ services:
     environment:
       - OLLAMA_HOST=0.0.0.0
     restart: unless-stopped
-  
+
   next-app:
-    build:
-      context: ./website
-      dockerfile: Dockerfile
+    image: julianbierbaum/repo:next-app
     ports:
       - "3000:3000"
     networks:
