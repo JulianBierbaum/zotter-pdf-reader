@@ -71,9 +71,9 @@ function LogoutButton() {
 
   const handleLogout = async () => {
     setIsLoggingOut(true);
-    // Start server action, but don't wait for it to finish.
-    logout();
-    // Immediately redirect on the client-side.
+    // Await the server action to ensure it completes before redirecting.
+    await logout();
+    // Redirect on the client-side after the server action is complete.
     router.push('/login');
   };
 

@@ -1,5 +1,23 @@
-version: '3.8'
 services:
+  ollama:
+    image: ollama/ollama:latest
+    container_name: ollama
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    networks:
+      - zotter-network
+    environment:
+      - OLLAMA_HOST=0.0.0.0
+    restart: unless-stopped
+    entrypoint: ["/bin/sh", "-c"]
+    command: >
+      "ollama serve &
+       sleep 10 &&
+       ollama pull gemma3:4b &&
+       wait"
+  
   next-app:
     build:
       context: ./website
@@ -10,7 +28,13 @@ services:
       - zotter-network
     env_file:
       - .env
+    depends_on:
+      - ollama
+    environment:
+      - OLLAMA_HOST=http://ollama:11434
+
+volumes:
+  ollama_data:
 
 networks:
   zotter-network:
-    driver: bridge
