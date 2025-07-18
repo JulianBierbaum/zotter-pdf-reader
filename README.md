@@ -53,12 +53,3 @@ npm run dev
 ```
 
 Open [http://localhost:9002](http://localhost:9002) with your browser to see the result.
-
-
-
-
-
-### Deploy Webhook
-https://cnz000675.virtual.local:9443/api/stacks/webhooks/7a224806-2cb8-430e-a3ef-ac292e7347bb
-
-https://docs.portainer.io/user/docker/stacks/webhooks
