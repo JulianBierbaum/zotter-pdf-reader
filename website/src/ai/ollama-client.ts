@@ -7,7 +7,7 @@ export const ollama = new Ollama({
 export async function callModel(prompt: string): Promise<string> {
   try {
     const response = await ollama.chat({
-      model: 'gemma3:4b',
+      model: 'gemma3:1b',
       messages: [
         {
           role: 'user',

@@ -11,7 +11,7 @@ WORKDIR /root/.ollama
 RUN ollama serve & \
     PID=$! && \
     sleep 10 && \
-    ollama pull gemma3:4b && \
+    ollama pull gemma3:1b && \
     kill "$PID" && \
     wait "$PID" || true
 
