@@ -1,7 +1,16 @@
+// src/ai/flows/checklist-generation.ts
 'use server';
 
-import { z } from 'zod';
-import { callModel } from '../ollama-client';
+/**
+ * @fileOverview Generates a checklist from a PDF document using GenAI.
+ *
+ * - generateChecklist - A function that handles the checklist generation process.
+ * - GenerateChecklistInput - The input type for the generateChecklist function.
+ * - GenerateChecklistOutput - The return type for the generateChecklist function.
+ */
+
+import {ai} from '@/ai/genkit';
+import {z} from 'genkit';
 
 const GenerateChecklistInputSchema = z.object({
   pdfDataUri: z
@@ -18,37 +27,30 @@ const GenerateChecklistOutputSchema = z.object({
 export type GenerateChecklistOutput = z.infer<typeof GenerateChecklistOutputSchema>;
 
 export async function generateChecklist(input: GenerateChecklistInput): Promise<GenerateChecklistOutput> {
-  // Validate input
-  const validatedInput = GenerateChecklistInputSchema.parse(input);
-  
-  const prompt = `Sie sind Experte für Dokumentenanalyse und Checklistenerstellung.
-
-Sie analysieren das bereitgestellte PDF-Dokument und erstellen eine Checkliste mit Punkten, die überprüft werden müssen.
-Die Checklistenpunkte sollten klar, prägnant und umsetzbar sein. Die Ausgabe muss auf Deutsch sein.
-
-Bitte antworten Sie im folgenden JSON-Format:
-{
-  "checklist": ["Punkt 1", "Punkt 2", "Punkt 3", ...]
+  return generateChecklistFlow(input);
 }
 
-PDF Document: ${validatedInput.pdfDataUri}
+const prompt = ai.definePrompt({
+  name: 'generateChecklistPrompt',
+  input: {schema: GenerateChecklistInputSchema},
+  output: {schema: GenerateChecklistOutputSchema},
+  prompt: `Sie sind Experte für Dokumentenanalyse und Checklistenerstellung.
 
-Generate checklist in German:`;
+  Sie analysieren das bereitgestellte PDF-Dokument und erstellen eine Checkliste mit Punkten, die überprüft werden müssen.
+  Die Checklistenpunkte sollten klar, prägnant und umsetzbar sein. Die Ausgabe muss auf Deutsch sein.
 
-  const responseText = await callModel(prompt);
-  
-  try {
-    const parsed = JSON.parse(responseText);
-    const result = GenerateChecklistOutputSchema.parse(parsed);
-    return result;
-  } catch (error) {
-    console.error('Failed to parse JSON response:', error);
-    // Fallback: extract checklist items from text response
-    const lines = responseText.split('\n').filter(line => 
-      line.trim().startsWith('-') || line.trim().startsWith('•')
-    );
-    return {
-      checklist: lines.map(line => line.replace(/^[-•]\s*/, '').trim()).filter(Boolean)
-    };
+  PDF Document: {{media url=pdfDataUri}}
+  \nGenerate checklist in German:`,
+});
+
+const generateChecklistFlow = ai.defineFlow(
+  {
+    name: 'generateChecklistFlow',
+    inputSchema: GenerateChecklistInputSchema,
+    outputSchema: GenerateChecklistOutputSchema,
+  },
+  async input => {
+    const {output} = await prompt(input);
+    return output!;
   }
-}
+);

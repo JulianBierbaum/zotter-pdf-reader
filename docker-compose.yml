@@ -1,25 +1,9 @@
 services:
-  ollama:
-    image: julianbierbaum/repo:ollama-gemma
-    container_name: ollama
-    volumes:
-      - ollama_data:/root/.ollama
-    ports:
-      - "11434:11434"
-    environment:
-      - OLLAMA_HOST=0.0.0.0:11434
-    restart: unless-stopped
-
   next-app:
-    image: julianbierbaum/repo:next-app
+    image: julianbierbaum/repo:pdf-analyser
     ports:
       - "3002:3000"
-    depends_on:
-      - ollama
     environment:
-      - OLLAMA_URL=http://ollama:11434
-      - APP_PASSWORD=password
+    - APP_PASSWORD=password
+    - GOOGLE_API_KEY=${GOOGLE_API_KEY}
     restart: unless-stopped
-
-volumes:
-  ollama_data:

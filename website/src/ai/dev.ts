@@ -1,5 +1,5 @@
 import { config } from 'dotenv';
 config();
 
-import './flows/checklist-generation';
-import './flows/pdf-analysis';
+import '@/ai/flows/checklist-generation.ts';
+import '@/ai/flows/pdf-analysis.ts';

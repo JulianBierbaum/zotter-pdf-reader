@@ -1,7 +1,16 @@
+// src/ai/flows/pdf-analysis.ts
 'use server';
 
-import { z } from 'zod';
-import { callModel } from '../ollama-client';
+/**
+ * @fileOverview Analyzes a PDF document against a checklist using Gemini 2.5 Flash.
+ *
+ * - analyzePdf - A function that handles the PDF analysis process.
+ * - AnalyzePdfInput - The input type for the analyzePdf function.
+ * - AnalyzePdfOutput - The return type for the analyzePdf function.
+ */
+
+import {ai} from '@/ai/genkit';
+import {z} from 'genkit';
 
 const AnalyzePdfInputSchema = z.object({
   pdfDataUri: z
@@ -23,53 +32,38 @@ const AnalyzePdfOutputSchema = z.object({
 });
 export type AnalyzePdfOutput = z.infer<typeof AnalyzePdfOutputSchema>;
 
-export async function analyzePdf(input: AnalyzePdfInput): Promise<AnalyzePdfOutput> {
-  // Validate input
-  const validatedInput = AnalyzePdfInputSchema.parse(input);
-  
-  const checklistItems = validatedInput.checklist.map(item => `- ${item}`).join('\n');
-  
-  const prompt = `Sie sind ein Experte für die Analyse von PDF-Dokumenten. Ihre Aufgabe ist es, das bereitgestellte PDF-Dokument anhand der gegebenen Checkliste zu überprüfen.
+const analyzePdfPrompt = ai.definePrompt({
+  name: 'analyzePdfPrompt',
+  input: {schema: AnalyzePdfInputSchema},
+  output: {schema: AnalyzePdfOutputSchema},
+  prompt: `Sie sind ein Experte für die Analyse von PDF-Dokumenten. Ihre Aufgabe ist es, das bereitgestellte PDF-Dokument anhand der gegebenen Checkliste zu überprüfen.
 
 Für jeden Punkt in der Checkliste:
-1. Stellen Sie fest, ob die Bedingung im PDF erfüllt ist ('present' ist true) oder nicht ('present' ist false).
-2. Extrahieren Sie den genauen Textausschnitt aus dem PDF, der Ihre Feststellung belegt. Fügen Sie diesen Text in das 'evidence'-Feld ein. Wenn kein direkter Beleg gefunden wird, lassen Sie das Feld leer.
-3. Wenn Sie sich bei einer Feststellung unsicher sind, geben Sie einen kurzen Grund dafür im 'uncertainty'-Feld an.
-4. Stellen Sie sicher, dass Ihre gesamte Analyse auf Deutsch ist.
+1.  Stellen Sie fest, ob die Bedingung im PDF erfüllt ist ('present' ist true) oder nicht ('present' ist false).
+2.  Extrahieren Sie den genauen Textausschnitt aus dem PDF, der Ihre Feststellung belegt. Fügen Sie diesen Text in das 'evidence'-Feld ein. Wenn kein direkter Beleg gefunden wird, lassen Sie das Feld leer.
+3.  Wenn Sie sich bei einer Feststellung unsicher sind, geben Sie einen kurzen Grund dafür im 'uncertainty'-Feld an.
+4.  Stellen Sie sicher, dass Ihre gesamte Analyse auf Deutsch ist.
 
-Antworten Sie im folgenden JSON-Format:
-{
-  "results": [
-    {
-      "item": "Checklistenpunkt",
-      "present": true,
-      "evidence": "Textausschnitt aus PDF",
-      "uncertainty": "Grund für Unsicherheit (optional)"
-    }
-  ]
-}
-
-PDF Document: ${validatedInput.pdfDataUri}
-
+PDF Document: {{media url=pdfDataUri}}
 Checklist: 
-${checklistItems}`;
+{{#each checklist}}
+- {{{this}}}
+{{/each}}
+`,
+});
 
-  const responseText = await callModel(prompt);
-  
-  try {
-    const parsed = JSON.parse(responseText);
-    const result = AnalyzePdfOutputSchema.parse(parsed);
-    return result;
-  } catch (error) {
-    console.error('Failed to parse JSON response:', error);
-    // Fallback: create basic results
-    return {
-      results: validatedInput.checklist.map(item => ({
-        item,
-        present: false,
-        evidence: '',
-        uncertainty: 'Failed to parse model response'
-      }))
-    };
+const analyzePdfFlow = ai.defineFlow(
+  {
+    name: 'analyzePdfFlow',
+    inputSchema: AnalyzePdfInputSchema,
+    outputSchema: AnalyzePdfOutputSchema,
+  },
+  async input => {
+    const {output} = await analyzePdfPrompt(input);
+    return output!;
   }
+);
+
+export async function analyzePdf(input: AnalyzePdfInput): Promise<AnalyzePdfOutput> {
+  return analyzePdfFlow(input);
 }
